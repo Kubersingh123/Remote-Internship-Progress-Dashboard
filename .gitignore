@@ -1,9 +1,10 @@
-node_modules/
-dist/
-.venv/
+venv/
+.logs/
+.syntax-cache/
 __pycache__/
-.pytest_cache/
-.env
 *.pyc
-uploads/
-backend/uploads/
+node_modules/
+.env
+*.log
+dist/
+build/
