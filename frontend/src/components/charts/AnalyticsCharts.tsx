@@ -7,8 +7,8 @@ export function AnalyticsCharts({ analytics }: { analytics: any }) {
 
   return (
     <div className="grid gap-6 xl:grid-cols-2">
-      <div className="panel p-6">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">Student Progress</h3>
+      <div className="panel panel-hover p-6">
+        <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Student Progress</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={analytics.student_progress ?? []}>
@@ -21,8 +21,8 @@ export function AnalyticsCharts({ analytics }: { analytics: any }) {
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="panel p-6">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">Task Status</h3>
+      <div className="panel panel-hover p-6">
+        <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Task Status</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

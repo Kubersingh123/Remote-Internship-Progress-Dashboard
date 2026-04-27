@@ -39,10 +39,10 @@ export function MarkdownReportForm({ onCreated }: { onCreated: () => void }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <form className="panel space-y-4 p-6" onSubmit={handleSubmit}>
+      <form className="panel panel-hover space-y-4 p-6" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">
           <input className="input" placeholder="Report title" value={form.title} onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))} />
-          <input className="input" placeholder="Week 6 · Mar 25 - Mar 31" value={form.week_label} onChange={(e) => setForm((c) => ({ ...c, week_label: e.target.value }))} />
+          <input className="input" placeholder="Week 6 | Mar 25 - Mar 31" value={form.week_label} onChange={(e) => setForm((c) => ({ ...c, week_label: e.target.value }))} />
         </div>
         <textarea className="input min-h-[280px]" value={form.content} onChange={(e) => setForm((c) => ({ ...c, content: e.target.value }))} />
         <div className="grid gap-4 md:grid-cols-2">
@@ -52,9 +52,9 @@ export function MarkdownReportForm({ onCreated }: { onCreated: () => void }) {
         <input type="file" accept=".pdf,image/*" className="input" onChange={(e: ChangeEvent<HTMLInputElement>) => setUploadFile(e.target.files?.[0] ?? null)} />
         <button className="button-primary" disabled={saving}>{saving ? "Submitting..." : "Submit report"}</button>
       </form>
-      <div className="panel p-6">
-        <p className="mb-4 text-sm font-semibold text-slate-600">Markdown Preview</p>
-        <article className="prose prose-slate max-w-none">
+      <div className="panel panel-hover p-6">
+        <p className="mb-4 text-sm font-semibold text-slate-600 dark:text-slate-300">Markdown Preview</p>
+        <article className="prose prose-slate max-w-none dark:prose-invert">
           <ReactMarkdown>{form.content}</ReactMarkdown>
         </article>
       </div>

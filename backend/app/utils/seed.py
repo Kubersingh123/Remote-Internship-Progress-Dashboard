@@ -12,6 +12,29 @@ async def seed():
     await db.tasks.delete_many({})
     await db.reports.delete_many({})
     await db.notifications.delete_many({})
+    await db.internships.delete_many({})
+
+    internship_result = await db.internships.insert_many(
+        [
+            {
+                "title": "Frontend Engineering Internship",
+                "domain": "Frontend Development",
+                "description": "Build production UI with React and API integration.",
+                "duration_weeks": 12,
+                "is_active": True,
+                "created_at": datetime.utcnow(),
+            },
+            {
+                "title": "Data Science Internship",
+                "domain": "Data Science",
+                "description": "Work on analytics, modeling and reporting workflows.",
+                "duration_weeks": 10,
+                "is_active": True,
+                "created_at": datetime.utcnow(),
+            },
+        ]
+    )
+    frontend_internship_id = internship_result.inserted_ids[0]
 
     mentor = {
         "name": "Maya Mentor",
@@ -20,6 +43,7 @@ async def seed():
         "role": "mentor",
         "progress": 0,
         "github_username": "octocat",
+        "internship_id": frontend_internship_id,
         "created_at": datetime.utcnow(),
     }
     mentor_result = await db.users.insert_one(mentor)
@@ -32,6 +56,7 @@ async def seed():
         "mentor_id": mentor_result.inserted_id,
         "progress": 33,
         "github_username": "octocat",
+        "internship_id": frontend_internship_id,
         "created_at": datetime.utcnow(),
     }
     student_result = await db.users.insert_one(student)
@@ -42,6 +67,7 @@ async def seed():
         "password": get_password_hash("password123"),
         "role": "admin",
         "progress": 0,
+        "internship_id": None,
         "created_at": datetime.utcnow(),
     }
     await db.users.insert_one(admin)

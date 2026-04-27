@@ -14,16 +14,16 @@ export function DashboardPage({ analytics, notifications }: { analytics: any; no
         <MetricCard label="Tasks" value={summary.total_tasks ?? 0} hint="Kanban workload overview" />
       </section>
       <AnalyticsCharts analytics={analytics} />
-      <section className="panel p-6">
+      <section className="panel panel-hover p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Recent Notifications</h2>
-          <span className="text-sm text-slate-500">{notifications.length} items</span>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Notifications</h2>
+          <span className="text-sm text-slate-500 dark:text-slate-400">{notifications.length} items</span>
         </div>
         <div className="space-y-3">
           {notifications.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
-              <p className="font-medium text-slate-900">{item.title}</p>
-              <p className="mt-1 text-sm text-slate-500">{item.message}</p>
+            <div key={item.id} className="rounded-2xl border border-slate-200 p-4 transition hover:border-brand-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-sky-700 dark:hover:bg-slate-800/70">
+              <p className="font-medium text-slate-900 dark:text-slate-100">{item.title}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{item.message}</p>
             </div>
           ))}
         </div>

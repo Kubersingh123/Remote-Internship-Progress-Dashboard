@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.deps import get_db, require_roles
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.schemas.user import Role
+from app.services.analytics_store import log_analytics_event
 from app.services.progress import calculate_student_progress
 from app.utils.serializers import serialize_document
 
@@ -23,7 +24,11 @@ async def list_tasks(
     query: dict = {}
     if current_user["role"] == Role.STUDENT.value:
         query["student_id"] = ObjectId(current_user["id"])
+    if current_user["role"] == Role.MENTOR.value:
+        query["mentor_id"] = ObjectId(current_user["id"])
     if student_id:
+        if current_user["role"] == Role.STUDENT.value and student_id != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Students can only view their own tasks")
         query["student_id"] = ObjectId(student_id)
     if status_filter:
         query["status"] = status_filter
@@ -48,6 +53,14 @@ async def create_task(payload: TaskCreate, db=Depends(get_db), current_user=Depe
     task_doc["created_at"] = datetime.utcnow()
     task_doc["updated_at"] = datetime.utcnow()
     result = await db.tasks.insert_one(task_doc)
+    await log_analytics_event(
+        db,
+        event_type="task_created",
+        actor_id=current_user["id"],
+        related_student_id=payload.student_id,
+        related_mentor_id=current_user["id"],
+        metadata={"status": payload.status.value},
+    )
     await calculate_student_progress(db, payload.student_id)
     created = await db.tasks.find_one({"_id": result.inserted_id})
     return serialize_document(created)
@@ -55,6 +68,15 @@ async def create_task(payload: TaskCreate, db=Depends(get_db), current_user=Depe
 
 @router.patch("/{task_id}")
 async def update_task(task_id: str, payload: TaskUpdate, db=Depends(get_db), current_user=Depends(require_roles(Role.ADMIN, Role.MENTOR, Role.STUDENT))):
+    existing = await db.tasks.find_one({"_id": ObjectId(task_id)})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if current_user["role"] == Role.STUDENT.value and str(existing["student_id"]) != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Students can only update their own tasks")
+    if current_user["role"] == Role.MENTOR.value and str(existing.get("mentor_id")) != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Mentors can only update assigned tasks")
+
     updates = {k: v for k, v in payload.model_dump(exclude_none=True).items()}
     if "student_id" in updates:
         updates["student_id"] = ObjectId(updates["student_id"])
@@ -65,5 +87,13 @@ async def update_task(task_id: str, payload: TaskUpdate, db=Depends(get_db), cur
         raise HTTPException(status_code=404, detail="Task not found")
 
     task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+    await log_analytics_event(
+        db,
+        event_type="task_updated",
+        actor_id=current_user["id"],
+        related_student_id=str(task["student_id"]),
+        related_mentor_id=str(task.get("mentor_id")) if task.get("mentor_id") else None,
+        metadata={"status": task.get("status")},
+    )
     await calculate_student_progress(db, str(task["student_id"]))
     return serialize_document(task)

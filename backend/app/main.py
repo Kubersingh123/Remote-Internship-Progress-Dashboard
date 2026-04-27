@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import analytics, auth, notifications, reports, tasks, users
+from app.api.routes import analytics, auth, internships, notifications, reports, tasks, users
 from app.core.config import settings
 
 app = FastAPI(title=settings.app_name)
@@ -20,6 +20,7 @@ app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(tasks.router, prefix="/api/tasks", tags=["Tasks"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
+app.include_router(internships.router, prefix="/api/internships", tags=["Internships"])
 
 
 @app.get("/api/health")

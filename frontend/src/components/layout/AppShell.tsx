@@ -1,6 +1,7 @@
-import { LayoutDashboard, LogOut, NotebookTabs, SquareKanban } from "lucide-react";
+import { LayoutDashboard, LogOut, Moon, NotebookTabs, SquareKanban, Sun } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../hooks/useTheme";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -10,18 +11,25 @@ const navItems = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <header className="panel flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between">
+        <header className="panel panel-hover flex flex-col gap-4 px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <Link to="/" className="text-xl font-bold text-slate-900">Remote Internship Progress Dashboard</Link>
-            <p className="text-sm text-slate-500">Track reports, tasks, and mentorship momentum in one workspace.</p>
+            <Link to="/" className="text-lg font-bold text-slate-900 transition hover:text-brand-700 dark:text-slate-100 dark:hover:text-sky-300 sm:text-xl">
+              Remote Internship Progress Dashboard
+            </Link>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Track reports, tasks, and mentorship momentum in one workspace.</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-brand-50 px-4 py-2 text-sm text-brand-700">
-              {user?.name} · {user?.role}
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={toggleTheme} className="button-secondary flex items-center gap-2" title="Toggle dark mode">
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+              {isDark ? "Light" : "Dark"}
+            </button>
+            <div className="rounded-xl bg-brand-50 px-4 py-2 text-sm text-brand-700 dark:bg-sky-900/30 dark:text-sky-200">
+              {user?.name} | {user?.role}
             </div>
             <button onClick={logout} className="button-secondary flex items-center gap-2">
               <LogOut size={16} />
@@ -30,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-          <aside className="panel p-4">
+          <aside className="panel panel-hover p-4">
             <nav className="space-y-2">
               {navItems.map(({ to, label, icon: Icon }) => (
                 <NavLink
@@ -38,7 +46,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   to={to}
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
-                      isActive ? "bg-brand-700 text-white" : "text-slate-600 hover:bg-slate-100"
+                      isActive
+                        ? "bg-brand-700 text-white shadow-lg"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                     }`
                   }
                 >

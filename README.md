@@ -1,5 +1,7 @@
 # Remote Internship Progress Dashboard
 
+Drive Link :- https://drive.google.com/file/d/19UJvXwzxV5mCyiPSngitTpmC9iXkIiHN/view?usp=sharing
+
 Remote Internship Progress Dashboard is a full-stack internal platform for managing internship progress across students, mentors, and admins.
 
 ## Stack

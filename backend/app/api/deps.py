@@ -22,7 +22,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db=Depends(get_d
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     user["id"] = str(user["_id"])
+    user.pop("_id", None)
     user["mentor_id"] = str(user["mentor_id"]) if user.get("mentor_id") else None
+    user["internship_id"] = str(user["internship_id"]) if user.get("internship_id") else None
     return user
 
 

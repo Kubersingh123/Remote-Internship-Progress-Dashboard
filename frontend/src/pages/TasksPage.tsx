@@ -32,17 +32,17 @@ export function TasksPage({ tasks, setTasks }: { tasks: Task[]; setTasks: (tasks
 
   return (
     <div className="space-y-6">
-      <section className="panel p-6">
+      <section className="panel panel-hover p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Task Board</h2>
-            <p className="text-sm text-slate-500">Filter by title, description, or tags.</p>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Task Board</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Filter by title, description, or tags.</p>
           </div>
           <input className="input max-w-md" placeholder="Search tasks..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </section>
       {user?.role !== "student" ? (
-        <form className="panel grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4" onSubmit={handleCreateTask}>
+        <form className="panel panel-hover grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4" onSubmit={handleCreateTask}>
           <input className="input" placeholder="Task title" value={form.title} onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))} />
           <input className="input" placeholder="Student ID" value={form.student_id} onChange={(e) => setForm((c) => ({ ...c, student_id: e.target.value }))} />
           <input className="input" placeholder="Tags (comma separated)" value={form.tags} onChange={(e) => setForm((c) => ({ ...c, tags: e.target.value }))} />

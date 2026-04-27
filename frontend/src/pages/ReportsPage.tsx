@@ -24,24 +24,24 @@ export function ReportsPage({ reports, reload }: { reports: Report[]; reload: ()
   return (
     <div className="space-y-6">
       {user?.role === "student" ? <MarkdownReportForm onCreated={reload} /> : null}
-      <section className="panel p-6">
+      <section className="panel panel-hover p-6">
         <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Weekly Reports</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Weekly Reports</h2>
           <input className="input max-w-md" placeholder="Search reports..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="space-y-5">
           {filteredReports.map((report) => (
-            <article key={report.id} className="rounded-3xl border border-slate-200 p-5">
+            <article key={report.id} className="rounded-3xl border border-slate-200 p-5 transition duration-200 hover:-translate-y-0.5 hover:border-brand-200 dark:border-slate-700 dark:hover:border-sky-700">
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-slate-900">{report.title}</h3>
-                  <p className="text-sm text-slate-500">{report.week_label}</p>
+                  <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{report.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{report.week_label}</p>
                 </div>
-                <div className="rounded-xl bg-brand-50 px-4 py-2 text-sm text-brand-700">
+                <div className="rounded-xl bg-brand-50 px-4 py-2 text-sm text-brand-700 dark:bg-sky-900/30 dark:text-sky-200">
                   AI Summary: {report.summary}
                 </div>
               </div>
-              <div className="prose prose-slate mt-5 max-w-none">
+              <div className="prose prose-slate mt-5 max-w-none dark:prose-invert">
                 <ReactMarkdown>{report.content}</ReactMarkdown>
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
@@ -50,17 +50,17 @@ export function ReportsPage({ reports, reload }: { reports: Report[]; reload: ()
               </div>
               {report.attachments.length ? (
                 <div className="mt-4">
-                  <p className="text-sm font-medium text-slate-700">Attachments</p>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Attachments</p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {report.attachments.map((file) => <span key={file.path} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">{file.name}</span>)}
+                    {report.attachments.map((file) => <span key={file.path} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">{file.name}</span>)}
                   </div>
                 </div>
               ) : null}
-              <div className="mt-5 space-y-3 rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-700">Mentor Feedback</p>
+              <div className="mt-5 space-y-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/70">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Mentor Feedback</p>
                 {report.feedback.map((item, index) => (
-                  <div key={`${report.id}-${index}`} className="rounded-xl bg-white p-3 text-sm text-slate-600">
-                    <span className="font-medium text-slate-900">{item.author_name}: </span>
+                  <div key={`${report.id}-${index}`} className="rounded-xl bg-white p-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                    <span className="font-medium text-slate-900 dark:text-slate-100">{item.author_name}: </span>
                     {item.comment}
                   </div>
                 ))}

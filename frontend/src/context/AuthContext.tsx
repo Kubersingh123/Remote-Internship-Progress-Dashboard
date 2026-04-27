@@ -1,54 +1,91 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import api from "../api/client";
-import type { User } from "../types";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import { authService, clearTokens, getStoredAccessToken, setSessionExpiredHandler, setTokens } from "../services/api";
+import type { User } from "../app/types";
 
 interface AuthContextValue {
   user: User | null;
-  loading: boolean;
+  isAuthenticated: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function getTokenExpiryMs(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1])) as { exp?: number };
+    if (!payload.exp) return null;
+    return payload.exp * 1000;
+  } catch {
+    return null;
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    clearTokens();
+  }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("dashboard_token");
+    setSessionExpiredHandler(logout);
+  }, [logout]);
+
+  useEffect(() => {
+    const token = getStoredAccessToken();
     if (!token) {
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
 
-    api.get("/auth/me")
-      .then((response) => setUser(response.data))
-      .catch(() => localStorage.removeItem("dashboard_token"))
-      .finally(() => setLoading(false));
+    authService
+      .me()
+      .then((profile) => setUser(profile))
+      .catch(() => logout())
+      .finally(() => setIsLoading(false));
+  }, [logout]);
+
+  useEffect(() => {
+    const token = getStoredAccessToken();
+    if (!token) return;
+    const expiryMs = getTokenExpiryMs(token);
+    if (!expiryMs) return;
+    const timeout = expiryMs - Date.now();
+    if (timeout <= 0) {
+      logout();
+      return;
+    }
+    const timer = window.setTimeout(() => logout(), timeout);
+    return () => window.clearTimeout(timer);
+  }, [user, logout]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const payload = await authService.login(email, password);
+    setTokens(payload.access_token, payload.refresh_token ?? null);
+    setUser(payload.user);
   }, []);
 
-  const value = useMemo(() => ({
-    user,
-    loading,
-    login: async (email: string, password: string) => {
-      const response = await api.post("/auth/login", { email, password });
-      localStorage.setItem("dashboard_token", response.data.access_token);
-      setUser(response.data.user);
-    },
-    logout: () => {
-      localStorage.removeItem("dashboard_token");
-      setUser(null);
-    },
-  }), [user, loading]);
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated: Boolean(user),
+      isLoading,
+      login,
+      logout,
+    }),
+    [user, isLoading, login, logout]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export function useAuthContext() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
+  if (!context) throw new Error("useAuthContext must be used within AuthProvider");
   return context;
 }
