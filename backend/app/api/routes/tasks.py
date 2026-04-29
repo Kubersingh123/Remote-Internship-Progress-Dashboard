@@ -47,23 +47,55 @@ async def list_tasks(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_task(payload: TaskCreate, db=Depends(get_db), current_user=Depends(require_roles(Role.ADMIN, Role.MENTOR))):
-    task_doc = payload.model_dump()
-    task_doc["student_id"] = ObjectId(payload.student_id)
-    task_doc["mentor_id"] = ObjectId(current_user["id"])
-    task_doc["created_at"] = datetime.utcnow()
-    task_doc["updated_at"] = datetime.utcnow()
-    result = await db.tasks.insert_one(task_doc)
-    await log_analytics_event(
-        db,
-        event_type="task_created",
-        actor_id=current_user["id"],
-        related_student_id=payload.student_id,
-        related_mentor_id=current_user["id"],
-        metadata={"status": payload.status.value},
-    )
-    await calculate_student_progress(db, payload.student_id)
-    created = await db.tasks.find_one({"_id": result.inserted_id})
-    return serialize_document(created)
+    target_student_ids = payload.student_ids[:] if payload.student_ids else []
+    if payload.student_id:
+        target_student_ids.append(payload.student_id)
+    target_student_ids = list(dict.fromkeys(target_student_ids))
+
+    if not target_student_ids:
+        raise HTTPException(status_code=400, detail="At least one student is required")
+
+    created_docs = []
+    now = datetime.utcnow()
+    mentor_object_id = ObjectId(current_user["id"])
+
+    for student_id in target_student_ids:
+        student = await db.users.find_one({"_id": ObjectId(student_id), "role": Role.STUDENT.value}, {"_id": 1})
+        if not student:
+            raise HTTPException(status_code=400, detail=f"Student not found: {student_id}")
+
+        if current_user["role"] == Role.MENTOR.value:
+            mentor_owned_student = await db.users.find_one(
+                {"_id": student["_id"], "mentor_id": mentor_object_id, "role": Role.STUDENT.value},
+                {"_id": 1},
+            )
+            if not mentor_owned_student:
+                raise HTTPException(status_code=403, detail="Mentors can only create tasks for assigned students")
+
+        task_doc = payload.model_dump(exclude={"student_id", "student_ids"})
+        task_doc["student_id"] = student["_id"]
+        task_doc["mentor_id"] = mentor_object_id
+        task_doc["created_at"] = now
+        task_doc["updated_at"] = now
+
+        result = await db.tasks.insert_one(task_doc)
+        created = await db.tasks.find_one({"_id": result.inserted_id})
+        created_docs.append(created)
+
+        await log_analytics_event(
+            db,
+            event_type="task_created",
+            actor_id=current_user["id"],
+            related_student_id=student_id,
+            related_mentor_id=current_user["id"],
+            metadata={"status": payload.status.value},
+        )
+        await calculate_student_progress(db, student_id)
+
+    serialized = [serialize_document(doc) for doc in created_docs]
+    if len(serialized) == 1:
+        return serialized[0]
+    return {"created": serialized, "count": len(serialized)}
 
 
 @router.patch("/{task_id}")

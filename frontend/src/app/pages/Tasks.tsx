@@ -20,6 +20,7 @@ export function TasksPage() {
     title: "",
     description: "",
     student_id: "",
+    student_ids: [] as string[],
     due_date: "",
     tags: "",
     status: "todo" as TaskStatus,
@@ -70,31 +71,43 @@ export function TasksPage() {
 
   async function onAddTask(event: FormEvent) {
     event.preventDefault();
-    if (!newTask.title.trim() || !newTask.student_id) return;
+    const selectedStudentIds = user?.role === "admin"
+      ? newTask.student_ids
+      : newTask.student_id
+      ? [newTask.student_id]
+      : [];
+    if (!newTask.title.trim() || selectedStudentIds.length === 0) return;
 
     await callApi(
       async () => {
-        const created = await taskService.create({
+        const createdResponse = await taskService.create({
           title: newTask.title,
           description: newTask.description,
-          student_id: newTask.student_id,
+          student_id: user?.role === "admin" ? undefined : newTask.student_id,
+          student_ids: user?.role === "admin" ? newTask.student_ids : undefined,
           due_date: newTask.due_date || null,
           tags: newTask.tags.split(",").map((item) => item.trim()).filter(Boolean),
           status: newTask.status,
         });
+        const createdTasks = Array.isArray((createdResponse as any).created)
+          ? (createdResponse as { created: TaskItem[] }).created
+          : [createdResponse as TaskItem];
         setTasks((prev) => [
-          {
+          ...createdTasks.map((created) => ({
             ...created,
             dueDate: created.dueDate ?? created.due_date ?? null,
             assignee: "Assigned",
             priority: created.priority ?? "medium",
-          },
+          })),
           ...prev,
         ]);
-        setNewTask({ title: "", description: "", student_id: "", due_date: "", tags: "", status: "todo" });
+        setNewTask({ title: "", description: "", student_id: "", student_ids: [], due_date: "", tags: "", status: "todo" });
         setShowAddForm(false);
       },
-      { successMessage: "Task created", errorMessage: "Unable to create task" }
+      {
+        successMessage: selectedStudentIds.length > 1 ? `${selectedStudentIds.length} tasks created` : "Task created",
+        errorMessage: "Unable to create task",
+      }
     );
   }
 
@@ -123,18 +136,46 @@ export function TasksPage() {
                 value={newTask.title}
                 onChange={(event) => setNewTask((prev) => ({ ...prev, title: event.target.value }))}
               />
-              <select
-                className="h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
-                value={newTask.student_id}
-                onChange={(event) => setNewTask((prev) => ({ ...prev, student_id: event.target.value }))}
-              >
-                <option value="">Select student</option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.name}
-                  </option>
-                ))}
-              </select>
+              {user?.role === "admin" ? (
+                <div className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900">
+                  <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Assign Students (multiple)</p>
+                  <div className="max-h-28 space-y-1 overflow-y-auto pr-1">
+                    {students.map((student) => {
+                      const checked = newTask.student_ids.includes(student.id);
+                      return (
+                        <label key={student.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(event) =>
+                              setNewTask((prev) => ({
+                                ...prev,
+                                student_ids: event.target.checked
+                                  ? [...prev.student_ids, student.id]
+                                  : prev.student_ids.filter((id) => id !== student.id),
+                              }))
+                            }
+                          />
+                          {student.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <select
+                  className="h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                  value={newTask.student_id}
+                  onChange={(event) => setNewTask((prev) => ({ ...prev, student_id: event.target.value }))}
+                >
+                  <option value="">Select student</option>
+                  {students.map((student) => (
+                    <option key={student.id} value={student.id}>
+                      {student.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               <Input
                 placeholder="Description"
                 value={newTask.description}

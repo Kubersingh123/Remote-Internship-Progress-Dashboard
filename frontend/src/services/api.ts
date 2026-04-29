@@ -143,13 +143,14 @@ export const taskService = {
   async create(payload: {
     title: string;
     description?: string;
-    student_id: string;
+    student_id?: string;
+    student_ids?: string[];
     status?: "todo" | "in_progress" | "done";
     due_date?: string | null;
     tags?: string[];
   }) {
     const response = await api.post("/tasks/", payload);
-    return response.data as TaskItem;
+    return response.data as TaskItem | { created: TaskItem[]; count: number };
   },
   async update(taskId: string, payload: Partial<TaskItem>) {
     const response = await api.patch(`/tasks/${taskId}`, payload);

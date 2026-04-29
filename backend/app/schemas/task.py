@@ -13,7 +13,8 @@ class TaskStatus(str, Enum):
 class TaskCreate(BaseModel):
     title: str = Field(min_length=3, max_length=120)
     description: str = ""
-    student_id: str
+    student_id: str | None = None
+    student_ids: list[str] = []
     status: TaskStatus = TaskStatus.TODO
     due_date: datetime | None = None
     tags: list[str] = []
