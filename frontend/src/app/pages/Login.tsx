@@ -11,8 +11,8 @@ import { useToast } from "../../context/ToastContext";
 export function LoginPage() {
   const { login } = useAuth();
   const { showToast } = useToast();
-  const [email, setEmail] = useState("student@example.com");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -66,13 +66,6 @@ export function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-5 rounded-xl bg-gray-50 p-3 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-              <p className="font-semibold">Demo Accounts:</p>
-              <p>admin@example.com (Admin)</p>
-              <p>mentor@example.com (Mentor)</p>
-              <p>student@example.com (Student)</p>
-              <p className="mt-1 text-xs">Default seeded password: password123</p>
-            </div>
           </CardContent>
         </Card>
       </motion.div>
