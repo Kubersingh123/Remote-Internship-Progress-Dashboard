@@ -15,7 +15,10 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
     github_token: str | None = None
-    frontend_url: str = "http://localhost:5173,http://localhost:3000"
+    frontend_url: str = (
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,"
+        "https://remote-internship-progress-dashboar.vercel.app"
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
@@ -32,7 +35,12 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> list[str]:
         origins = [origin.strip().rstrip("/") for origin in self.frontend_url.split(",") if origin.strip()]
-        defaults = ["http://localhost:5173", "http://localhost:3000"]
+        defaults = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "https://remote-internship-progress-dashboar.vercel.app",
+        ]
         merged = [*origins, *defaults]
         # Preserve order while removing duplicates.
         return list(dict.fromkeys(merged))

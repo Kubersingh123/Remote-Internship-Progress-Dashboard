@@ -23,6 +23,11 @@ app.include_router(notifications.router, prefix="/api/notifications", tags=["Not
 app.include_router(internships.router, prefix="/api/internships", tags=["Internships"])
 
 
+@app.get("/")
+async def root() -> dict[str, str]:
+    return {"message": "Remote Internship Progress Dashboard API is running"}
+
+
 @app.get("/api/health")
 async def health_check() -> dict[str, str]:
     return {"status": "ok", "service": settings.app_name}
