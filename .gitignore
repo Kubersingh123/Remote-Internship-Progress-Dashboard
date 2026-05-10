@@ -1,10 +1,11 @@
 venv/
+.venv/
+node_modules/
+__pycache__/
+dist/
+.env
 .logs/
 .syntax-cache/
-__pycache__/
 *.pyc
-node_modules/
-.env
 *.log
-dist/
 build/

@@ -1,7 +1,11 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { AnalyticsOverview, Internship, NotificationItem, ReportItem, TaskItem, User } from "../app/types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is required. Set it in frontend/.env or deployment environment variables.");
+}
 const ACCESS_TOKEN_KEY = "dashboard_access_token";
 const REFRESH_TOKEN_KEY = "dashboard_refresh_token";
 
